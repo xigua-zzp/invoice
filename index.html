@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <title>发票管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'soft-green': '#10b981',
+                        'soft-amber': '#f59e0b',
+                        'soft-red': '#ef4444',
+                        'soft-indigo': '#6366f1',
+                    },
+                    fontFamily: {
+                        'soft': ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 柔和/磨砂玻璃风格 - 淡色渐变背景 */
+        body {
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            min-height: 100vh;
+        }
+
+        /* 磨砂玻璃卡片 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.04),
+                0 2px 16px rgba(0, 0, 0, 0.02);
+        }
+
+        /* 拟态按钮 - 凸起效果 */
+        .neumorph-btn {
+            background: linear-gradient(145deg, #ffffff, #f3f4f6);
+            box-shadow:
+                4px 4px 12px rgba(0, 0, 0, 0.06),
+                -4px -4px 12px rgba(255, 255, 255, 0.95);
+            border-radius: 14px;
+            transition: all 0.25s ease;
+            user-select: none;
+        }
+
+        .neumorph-btn:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                6px 6px 16px rgba(0, 0, 0, 0.08),
+                -6px -6px 16px rgba(255, 255, 255, 1);
+        }
+
+        /* 已支付按钮 - 绿色 */
+        .neumorph-btn[data-status="paid"].active {
+            background: linear-gradient(145deg, #d1fae5, #a7f3d0);
+            box-shadow:
+                inset 3px 3px 6px rgba(16, 185, 129, 0.15),
+                inset -3px -3px 6px rgba(255, 255, 255, 1);
+            color: #059669;
+        }
+
+        /* 待处理按钮 - 琥珀色 */
+        .neumorph-btn[data-status="pending"].active {
+            background: linear-gradient(145deg, #fef3c7, #fde68a);
+            box-shadow:
+                inset 3px 3px 6px rgba(245, 158, 11, 0.15),
+                inset -3px -3px 6px rgba(255, 255, 255, 1);
+            color: #d97706;
+        }
+
+        /* 逾期按钮 - 红色 */
+        .neumorph-btn[data-status="overdue"].active {
+            background: linear-gradient(145deg, #fee2e2, #fecaca);
+            box-shadow:
+                inset 3px 3px 6px rgba(239, 68, 68, 0.15),
+                inset -3px -3px 6px rgba(255, 255, 255, 1);
+            color: #dc2626;
+        }
+
+        /* 全部按钮 */
+        .neumorph-btn[data-status="all"].active {
+            background: linear-gradient(145deg, #e0e7ff, #c7d2fe);
+            box-shadow:
+                inset 3px 3px 6px rgba(99, 102, 241, 0.15),
+                inset -3px -3px 6px rgba(255, 255, 255, 1);
+            color: #4f46e5;
+        }
+
+        /* 表格容器 */
+        .glass-table {
+            background: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            user-select: none;
+            box-shadow:
+                0 4px 20px rgba(0, 0, 0, 0.04),
+                0 1px 8px rgba(0, 0, 0, 0.02);
+        }
+
+        /* 表格头部 - 磨砂玻璃效果 */
+        .glass-th {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            user-select: none;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        /* 表格内容区域 - 简洁白色背景 */
+        .glass-row {
+            background: #ffffff;
+            transition: all 0.25s ease;
+            user-select: none;
+        }
+
+        .glass-row:hover {
+            background: rgba(99, 102, 241, 0.04);
+        }
+
+        /* 斑马纹 - 偶数行 */
+        .glass-row:nth-child(even) {
+            background: rgba(248, 250, 252, 0.5);
+        }
+
+        .glass-row:nth-child(even):hover {
+            background: rgba(99, 102, 241, 0.06);
+        }
+
+        /* 排序图标 - 双箭头设计 */
+        .sort-icon-soft {
+            position: relative;
+            display: inline-block;
+            width: 8px;
+            height: 10px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        .sort-icon-soft::before,
+        .sort-icon-soft::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 3px solid transparent;
+            border-right: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        /* 上箭头 */
+        .sort-icon-soft::before {
+            top: 0;
+            border-bottom: 4px solid #cbd5e1;
+        }
+
+        /* 下箭头 */
+        .sort-icon-soft::after {
+            bottom: 0;
+            border-top: 4px solid #cbd5e1;
+        }
+
+        /* 升序：高亮上箭头 */
+        .sort-asc .sort-icon-soft::before {
+            border-bottom-color: #6366f1;
+        }
+
+        /* 降序：高亮下箭头 */
+        .sort-desc .sort-icon-soft::after {
+            border-top-color: #6366f1;
+        }
+
+        /* 可排序表头容器 */
+        .sortable {
+            transition: all 0.2s ease;
+        }
+
+        /* 表头 hover 效果 - 文字变色 */
+        .sortable:hover .sortable-text {
+            color: #6366f1;
+        }
+
+        /* hover 时箭头保持当前状态，只高亮对应方向 */
+        .sort-asc:hover .sort-icon-soft::before {
+            border-bottom-color: #6366f1;
+        }
+
+        .sort-desc:hover .sort-icon-soft::after {
+            border-top-color: #6366f1;
+        }
+
+        /* 选中状态 - 下划线 */
+        .sort-asc .sortable-text,
+        .sort-desc .sortable-text {
+            color: #6366f1;
+            position: relative;
+        }
+
+        .sort-asc .sortable-text::after,
+        .sort-desc .sortable-text::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #6366f1;
+            border-radius: 2px;
+        }
+
+        /* 状态徽章 - 拟态凸起效果 */
+        .status-glass {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.25s ease;
+        }
+
+        .status-paid-glass {
+            background: linear-gradient(145deg, #ffffff, #d1fae5);
+            box-shadow:
+                3px 3px 8px rgba(16, 185, 129, 0.2),
+                -3px -3px 8px rgba(255, 255, 255, 0.95);
+            color: #10b981;
+        }
+
+        .status-pending-glass {
+            background: linear-gradient(145deg, #ffffff, #fef3c7);
+            box-shadow:
+                3px 3px 8px rgba(245, 158, 11, 0.2),
+                -3px -3px 8px rgba(255, 255, 255, 0.95);
+            color: #f59e0b;
+        }
+
+        .status-overdue-glass {
+            background: linear-gradient(145deg, #ffffff, #fee2e2);
+            box-shadow:
+                3px 3px 8px rgba(239, 68, 68, 0.2),
+                -3px -3px 8px rgba(255, 255, 255, 0.95);
+            color: #ef4444;
+        }
+
+        /* 筛选容器 */
+        .filter-container {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 8px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* 金额样式 - 突出显示 */
+        .amount-cell {
+            font-family: 'SF Mono', 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            color: #111827;
+            letter-spacing: 1px;
+            font-variant-numeric: tabular-nums;
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+
+        .currency-symbol {
+            color: #6366f1;
+            font-weight: 600;
+            font-size: 13px;
+            margin-right: 2px;
+        }
+
+        /* 客户名称样式 - 次重要信息 */
+        .customer-cell {
+            font-weight: 500;
+            color: #374151;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-[#d4d9e4] via-[#e8ecf3] to-[#f0f4f9] min-h-screen font-soft py-10">
+    <div class="max-w-6xl mx-auto px-6">
+        <!-- 主卡片 -->
+        <div class="glass-card rounded-3xl p-8">
+            <!-- 头部 -->
+            <header class="mb-8">
+                <h1 class="text-2xl font-medium text-gray-700 tracking-tight">Invoice Management</h1>
+                <p class="text-sm text-gray-500 mt-1">Track and manage all your invoices</p>
+            </header>
+
+            <!-- 筛选栏 -->
+            <div class="flex items-center justify-between mb-6">
+                <span class="text-sm text-gray-500 select-none min-w-[100px]" id="totalCount">10 invoices</span>
+                <div class="filter-container flex items-center gap-3">
+                    <svg class="w-4 h-4" fill="#6366f1" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                    </svg>
+                    <div class="flex gap-3">
+                        <button class="filter-btn neumorph-btn active px-4 py-2 text-sm text-gray-700 cursor-pointer" data-status="all">All</button>
+                        <button class="filter-btn neumorph-btn px-4 py-2 text-sm text-gray-700 cursor-pointer" data-status="paid">Paid</button>
+                        <button class="filter-btn neumorph-btn px-4 py-2 text-sm text-gray-700 cursor-pointer" data-status="pending">Pending</button>
+                        <button class="filter-btn neumorph-btn px-4 py-2 text-sm text-gray-700 cursor-pointer" data-status="overdue">Overdue</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 表格 -->
+            <div class="glass-table">
+                <table class="w-full" id="invoiceTable">
+                    <thead>
+                        <tr>
+                            <th class="glass-th px-5 py-4" data-column="customer">
+                                <div class="sortable flex items-center justify-start w-fit cursor-pointer transition-all duration-200">
+                                    <span class="sortable-text text-xs font-medium text-gray-500 uppercase tracking-wider transition-colors">Customer</span>
+                                    <span class="sort-icon-soft"></span>
+                                </div>
+                            </th>
+                            <th class="glass-th px-5 py-4 w-40" data-column="amount">
+                                <div class="sortable flex items-center justify-end w-full cursor-pointer transition-all duration-200">
+                                    <span class="sortable-text text-xs font-medium text-gray-500 uppercase tracking-wider transition-colors">Amount (USD)</span>
+                                    <span class="sort-icon-soft"></span>
+                                </div>
+                            </th>
+                            <th class="glass-th px-5 py-4 w-48" data-column="status">
+                                <div class="sortable flex items-center justify-start w-fit cursor-pointer transition-all duration-200">
+                                    <span class="sortable-text text-xs font-medium text-gray-500 uppercase tracking-wider transition-colors">Status</span>
+                                    <span class="sort-icon-soft"></span>
+                                </div>
+                            </th>
+                            <th class="glass-th px-5 py-4" data-column="dueDate">
+                                <div class="sortable flex items-center justify-start w-fit cursor-pointer transition-all duration-200">
+                                    <span class="sortable-text text-xs font-medium text-gray-500 uppercase tracking-wider transition-colors">Due Date</span>
+                                    <span class="sort-icon-soft"></span>
+                                </div>
+                            </th>
+                            <th class="glass-th px-5 py-4" data-column="issuedAt">
+                                <div class="sortable flex items-center justify-start w-fit cursor-pointer transition-all duration-200">
+                                    <span class="sortable-text text-xs font-medium text-gray-500 uppercase tracking-wider transition-colors">Issued Date</span>
+                                    <span class="sort-icon-soft"></span>
+                                </div>
+                            </th>
+                            <th class="glass-th px-5 py-4" data-column="id">
+                                <div class="sortable flex items-center justify-start w-fit cursor-pointer transition-all duration-200">
+                                    <span class="sortable-text text-xs font-medium text-gray-500 uppercase tracking-wider transition-colors">Invoice #</span>
+                                    <span class="sort-icon-soft"></span>
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="text-sm">
+                        <!-- 数据动态填充 -->
+                    </tbody>
+                </table>
+
+                <!-- 空状态 -->
+                <div class="empty-state hidden py-16 text-center" id="emptyState">
+                    <div class="text-4xl mb-3 opacity-50">📋</div>
+                    <p class="text-gray-500">No invoices found</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部 -->
+        <!-- <footer class="mt-8 text-center">
+            <p class="text-xs text-gray-400">Invoice Management System</p>
+        </footer> -->
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
