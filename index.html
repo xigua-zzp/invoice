@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale-1.0">
-    <title>发票管理系统</title>
+    <title>Invoice Management System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -23,13 +23,13 @@
         }
     </script>
     <style>
-        /* 柔和/磨砂玻璃风格 - 淡色渐变背景 */
+        /* Soft/Frosted Glass Style - Light Gradient Background */
         body {
             background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
             min-height: 100vh;
         }
 
-        /* 磨砂玻璃卡片 */
+        /* Frosted Glass Card */
         .glass-card {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
@@ -40,7 +40,7 @@
                 0 2px 16px rgba(0, 0, 0, 0.02);
         }
 
-        /* 拟态按钮 - 凸起效果 */
+        /* Neumorphism Button - Elevated Effect */
         .neumorph-btn {
             background: linear-gradient(145deg, #ffffff, #f3f4f6);
             box-shadow:
@@ -58,7 +58,7 @@
                 -6px -6px 16px rgba(255, 255, 255, 1);
         }
 
-        /* 已支付按钮 - 绿色 */
+        /* Paid Button - Green */
         .neumorph-btn[data-status="paid"].active {
             background: linear-gradient(145deg, #d1fae5, #a7f3d0);
             box-shadow:
@@ -67,7 +67,7 @@
             color: #059669;
         }
 
-        /* 待处理按钮 - 琥珀色 */
+        /* Pending Button - Amber */
         .neumorph-btn[data-status="pending"].active {
             background: linear-gradient(145deg, #fef3c7, #fde68a);
             box-shadow:
@@ -76,7 +76,7 @@
             color: #d97706;
         }
 
-        /* 逾期按钮 - 红色 */
+        /* Overdue Button - Red */
         .neumorph-btn[data-status="overdue"].active {
             background: linear-gradient(145deg, #fee2e2, #fecaca);
             box-shadow:
@@ -85,7 +85,7 @@
             color: #dc2626;
         }
 
-        /* 全部按钮 */
+        /* All Button */
         .neumorph-btn[data-status="all"].active {
             background: linear-gradient(145deg, #e0e7ff, #c7d2fe);
             box-shadow:
@@ -94,7 +94,7 @@
             color: #4f46e5;
         }
 
-        /* 表格容器 */
+        /* Table Container */
         .glass-table {
             background: #ffffff;
             border-radius: 20px;
@@ -105,7 +105,7 @@
                 0 1px 8px rgba(0, 0, 0, 0.02);
         }
 
-        /* 表格头部 - 磨砂玻璃效果 */
+        /* Table Header - Frosted Glass Effect */
         .glass-th {
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
             backdrop-filter: blur(12px);
@@ -114,7 +114,7 @@
             border-bottom: 1px solid rgba(0, 0, 0, 0.06);
         }
 
-        /* 表格内容区域 - 简洁白色背景 */
+        /* Table Body - Clean White Background */
         .glass-row {
             background: #ffffff;
             transition: all 0.25s ease;
@@ -125,7 +125,7 @@
             background: rgba(99, 102, 241, 0.04);
         }
 
-        /* 斑马纹 - 偶数行 */
+        /* Zebra Striping - Even Rows */
         .glass-row:nth-child(even) {
             background: rgba(248, 250, 252, 0.5);
         }
@@ -134,7 +134,7 @@
             background: rgba(99, 102, 241, 0.06);
         }
 
-        /* 排序图标 - 双箭头设计 */
+        /* Sort Icon - Dual Arrow Design */
         .sort-icon-soft {
             position: relative;
             display: inline-block;
@@ -155,39 +155,39 @@
             transition: all 0.2s ease;
         }
 
-        /* 上箭头 */
+        /* Up Arrow */
         .sort-icon-soft::before {
             top: 0;
             border-bottom: 4px solid #cbd5e1;
         }
 
-        /* 下箭头 */
+        /* Down Arrow */
         .sort-icon-soft::after {
             bottom: 0;
             border-top: 4px solid #cbd5e1;
         }
 
-        /* 升序：高亮上箭头 */
+        /* Ascending: Highlight Up Arrow */
         .sort-asc .sort-icon-soft::before {
             border-bottom-color: #6366f1;
         }
 
-        /* 降序：高亮下箭头 */
+        /* Descending: Highlight Down Arrow */
         .sort-desc .sort-icon-soft::after {
             border-top-color: #6366f1;
         }
 
-        /* 可排序表头容器 */
+        /* Sortable Header Container */
         .sortable {
             transition: all 0.2s ease;
         }
 
-        /* 表头 hover 效果 - 文字变色 */
+        /* Header Hover Effect - Text Color Change */
         .sortable:hover .sortable-text {
             color: #6366f1;
         }
 
-        /* hover 时箭头保持当前状态，只高亮对应方向 */
+        /* Hover: Keep Arrow State, Highlight Current Direction */
         .sort-asc:hover .sort-icon-soft::before {
             border-bottom-color: #6366f1;
         }
@@ -196,7 +196,7 @@
             border-top-color: #6366f1;
         }
 
-        /* 选中状态 - 下划线 */
+        /* Selected State - Underline */
         .sort-asc .sortable-text,
         .sort-desc .sortable-text {
             color: #6366f1;
@@ -215,7 +215,7 @@
             border-radius: 2px;
         }
 
-        /* 状态徽章 - 拟态凸起效果 */
+        /* Status Badge - Neumorphism Elevated Effect */
         .status-glass {
             padding: 6px 12px;
             border-radius: 4px;
@@ -250,7 +250,7 @@
             color: #ef4444;
         }
 
-        /* 筛选容器 */
+        /* Filter Container */
         .filter-container {
             background: rgba(255, 255, 255, 0.5);
             backdrop-filter: blur(10px);
@@ -260,7 +260,7 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        /* 金额样式 - 突出显示 */
+        /* Amount Styling - Prominent Display */
         .amount-cell {
             font-family: 'SF Mono', 'Monaco', 'Consolas', 'Courier New', monospace;
             font-size: 14px;
@@ -279,7 +279,7 @@
             margin-right: 2px;
         }
 
-        /* 客户名称样式 - 次重要信息 */
+        /* Customer Name Styling - Secondary Info */
         .customer-cell {
             font-weight: 500;
             color: #374151;

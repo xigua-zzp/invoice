@@ -1,4 +1,4 @@
-// 发票管理系统 - 磨砂玻璃风格
+// Invoice Management System - Frosted Glass Style
 
 const mockData = [
     { id: "inv_001", customer: "Acme Corp", amount: 1250.00, status: "paid", dueDate: "2025-01-15", issuedAt: "2025-01-01" },
@@ -13,38 +13,38 @@ const mockData = [
     { id: "inv_010", customer: "Umbrella LLC", amount: 3200.00, status: "overdue", dueDate: "2025-01-07", issuedAt: "2024-12-22" }
 ];
 
-// 状态映射
+// Status Mapping
 const statusMap = {
     paid: "PAID",
     pending: "PENDING",
     overdue: "OVERDUE"
 };
 
-// 磨砂玻璃状态徽章
+// Frosted Glass Status Badges
 const statusBadgeClass = {
     paid: "status-glass status-paid-glass",
     pending: "status-glass status-pending-glass",
     overdue: "status-glass status-overdue-glass"
 };
 
-// 当前状态
+// Current State
 let currentFilter = "all";
 let currentSort = { column: null, direction: "asc" };
 
-// DOM 元素
+// DOM Elements
 const tableBody = document.getElementById("tableBody");
 const emptyState = document.getElementById("emptyState");
 const invoiceTable = document.getElementById("invoiceTable");
 const totalCount = document.getElementById("totalCount");
 
-// 初始化
+// Initialize
 function init() {
     setupFilterButtons();
     setupSortableHeaders();
     renderTable();
 }
 
-// 设置筛选按钮 - 拟态效果
+// Setup Filter Buttons - Neumorphism Effect
 function setupFilterButtons() {
     const filterButtons = document.querySelectorAll(".filter-btn");
     filterButtons.forEach(btn => {
@@ -58,7 +58,7 @@ function setupFilterButtons() {
     });
 }
 
-// 设置可排序列
+// Setup Sortable Headers
 function setupSortableHeaders() {
     const headers = document.querySelectorAll(".sortable");
     headers.forEach(header => {
@@ -66,11 +66,11 @@ function setupSortableHeaders() {
             const column = header.parentElement.dataset.column;
 
             if (currentSort.column === column) {
-                // 已排序的列：asc -> desc -> 恢复无排序
+                // Already sorted column: asc -> desc -> reset
                 if (currentSort.direction === "asc") {
                     currentSort.direction = "desc";
                 } else {
-                    // 恢复无排序
+                    // Reset to no sort
                     currentSort.column = null;
                     currentSort.direction = "asc";
                     headers.forEach(h => h.classList.remove("sort-asc", "sort-desc"));
@@ -78,7 +78,7 @@ function setupSortableHeaders() {
                     return;
                 }
             } else {
-                // 新列：升序开始
+                // New column: start with ascending
                 currentSort.column = column;
                 currentSort.direction = "asc";
             }
@@ -91,13 +91,13 @@ function setupSortableHeaders() {
     });
 }
 
-// 筛选数据
+// Filter Data
 function filterData(data) {
     if (currentFilter === "all") return data;
     return data.filter(item => item.status === currentFilter);
 }
 
-// 排序数据
+// Sort Data
 function sortData(data) {
     if (!currentSort.column) return data;
 
@@ -121,7 +121,7 @@ function sortData(data) {
     });
 }
 
-// 渲染表格
+// Render Table
 function renderTable() {
     const filteredData = filterData(mockData);
     const sortedData = sortData(filteredData);
@@ -156,7 +156,7 @@ function renderTable() {
     });
 }
 
-// 格式化日期
+// Format Date
 function formatDate(dateStr) {
     const date = new Date(dateStr);
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -166,5 +166,5 @@ function formatDate(dateStr) {
     return `${month} ${day}, ${year}`;
 }
 
-// 页面加载完成后初始化
+// Initialize on Page Load
 document.addEventListener("DOMContentLoaded", init);
